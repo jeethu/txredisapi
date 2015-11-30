@@ -1,7 +1,7 @@
 txredisapi
 ==========
 
-[![Build Status](https://secure.travis-ci.org/fiorix/txredisapi.png)](http://travis-ci.org/fiorix/txredisapi)
+[![Build Status](https://secure.travis-ci.org/jeethu/txredisapi.png)](http://travis-ci.org/jeethu/txredisapi)
 
 
 *For the latest source code, see <http://github.com/fiorix/txredisapi>*

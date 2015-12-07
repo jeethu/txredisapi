@@ -17,6 +17,8 @@ from twisted.trial import unittest
 from twisted.internet import defer
 import os
 
+import txredisapi as redis
+
 s = os.getenv("DBREDIS_1_PORT_6379_TCP_ADDR")
 
 if s is not None:
@@ -61,4 +63,26 @@ class Redis26CheckMixin(RedisVersionCheckMixin):
     def _skipCheck(self):
         if not self.redis_2_6:
             skipMsg = "Redis version < 2.6 (found version: %s)"
+            raise unittest.SkipTest(skipMsg % self.redis_version)
+
+
+class RedisGeoCheckMixin(object):
+    @defer.inlineCallbacks
+    def has_geo(self):
+        """
+        Returns true if the server supports GEO commands
+        """
+        key = "_geo_test_key"
+        has_geo = True
+        try:
+            yield self.db.geoadd(key, [(13.361389, 38.115556, "Palermo")])
+        except redis.ResponseError:
+            has_geo = False
+        else:
+            yield self.db.delete(key)
+        defer.returnValue(has_geo)
+
+    def _skipCheck(self):
+        if not self.redis_geo_support:
+            skipMsg = "Redis server does not support GEO commands"
             raise unittest.SkipTest(skipMsg % self.redis_version)

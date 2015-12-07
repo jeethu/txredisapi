@@ -16,18 +16,19 @@
 from twisted.internet import defer
 from twisted.trial import unittest
 
-from .mixins import REDIS_HOST, REDIS_PORT
+from .mixins import REDIS_HOST, REDIS_PORT, RedisGeoCheckMixin
 
 import txredisapi as redis
 
 
-class TestGeo(unittest.TestCase):
+class TestGeo(unittest.TestCase, RedisGeoCheckMixin):
     _KEY = '_geo_test_key'
 
     @defer.inlineCallbacks
     def setUp(self):
         self.db = yield redis.Connection(REDIS_HOST, REDIS_PORT,
                                          reconnect=False)
+        self.redis_geo_support = yield self.has_geo()
         yield self.db.delete(self._KEY)
 
     @defer.inlineCallbacks
@@ -42,6 +43,7 @@ class TestGeo(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_geoadd(self):
+        self._skipCheck()
         r = yield self._do_geoadd()
         self.assertEqual(r, 2)
         r = yield self.db.zcard(self._KEY)
@@ -49,6 +51,7 @@ class TestGeo(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_geohash(self):
+        self._skipCheck()
         yield self._do_geoadd()
         r = yield self.db.geohash(self._KEY, ('Palermo', 'Catania'))
         self.assertEqual(len(r), 2)
@@ -57,6 +60,7 @@ class TestGeo(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_geopos(self):
+        self._skipCheck()
         yield self._do_geoadd()
         r = yield self.db.geopos(self._KEY,
                                  ('Palermo', 'Catania', 'NonExisting'))
@@ -67,6 +71,7 @@ class TestGeo(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_geodist(self):
+        self._skipCheck()
         yield self._do_geoadd()
         r = yield self.db.geodist(self._KEY, ('Palermo', 'Catania'))
         self.assertAlmostEqual(r, 166274.15156960033)
@@ -80,6 +85,7 @@ class TestGeo(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_georadius(self):
+        self._skipCheck()
         yield self._do_geoadd()
         r = yield self.db.georadius(self._KEY, 15, 37, 200, 'km', withdist=True)
         self.assertEqual(len(r), 2)
@@ -104,6 +110,7 @@ class TestGeo(unittest.TestCase):
 
     @defer.inlineCallbacks
     def test_georadiusbymember(self):
+        self._skipCheck()
         r = yield self.db.geoadd(self._KEY,
                                  [(13.583333, 37.316667, "Agrigento")])
         self.assertEqual(r, 1)

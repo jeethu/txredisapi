@@ -85,4 +85,4 @@ class RedisGeoCheckMixin(object):
     def _skipCheck(self):
         if not self.redis_geo_support:
             skipMsg = "Redis server does not support GEO commands"
-            raise unittest.SkipTest(skipMsg % self.redis_version)
+            raise unittest.SkipTest(skipMsg)

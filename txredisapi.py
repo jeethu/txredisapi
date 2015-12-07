@@ -1656,6 +1656,60 @@ class BaseRedisProtocol(LineReceiver, policies.TimeoutMixin):
         sourceKeys = list_or_args("pfmerge", sourceKeys, args)
         return self.execute_command("PFMERGE", destKey, *sourceKeys)
 
+    # Redis 3.2 GEO commands
+    def geoadd(self, key, members):
+        """
+        each member object is a 3 tuple (longitude, latitude, member)
+        """
+        elements = []
+        for longitude, latitude, member in members:
+            elements.extend([longitude, latitude, member])
+        return self.execute_command("GEOADD", key, *elements)
+
+    def geohash(self, key, members):
+        return self.execute_command("GEOHASH", key, *members)
+
+    def geopos(self, key, members):
+        return self.execute_command("GEOPOS", key, *members)
+
+    def geodist(self, key, members, unit=None):
+        if unit is not None:
+            assert unit in ('m', 'km', 'mi', 'ft')
+            elements = []
+            elements.extend(members)
+            elements.append(unit)
+        else:
+            elements = members
+        return self.execute_command("GEODIST", key, *elements)
+
+    def _georadius(self, command, key, unit, elements,
+                   withcoord, withdist,
+                   withhash, count):
+        assert unit in ('m', 'km', 'mi', 'ft')
+        elements.append(unit)
+        if withcoord:
+            elements.append('WITHCOORD')
+        if withdist:
+            elements.append('WITHDIST')
+        if withhash:
+            elements.append('WITHHASH')
+        if count is not None:
+            elements.extend(['COUNT', count])
+        return self.execute_command(command, key, *elements)
+
+    def georadius(self, key, longitude, latitude, radius, unit,
+                  withcoord=False, withdist=False, withhash=False, count=None):
+        elements = [longitude, latitude, radius]
+        return self._georadius("GEORADIUS", key, unit, elements,
+                               withcoord, withdist, withhash, count)
+
+    def georadiusbymember(self, key, member, radius, unit,
+                          withcoord=False, withdist=False,
+                          withhash=False, count=None):
+        elements = [member, radius]
+        return self._georadius("GEORADIUSBYMEMBER", key, unit, elements,
+                               withcoord, withdist, withhash, count)
+
 
 class HiredisProtocol(BaseRedisProtocol):
     def __init__(self, *args, **kwargs):

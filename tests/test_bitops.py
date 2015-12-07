@@ -32,10 +32,8 @@ class TestBitOps(unittest.TestCase, Redis26CheckMixin):
     def setUp(self):
         self.db = yield redis.Connection(REDIS_HOST, REDIS_PORT,
                                          reconnect=False)
-        self.db1 = None
         self.redis_2_6 = yield self.is_redis_2_6()
         yield self.db.delete(*self._KEYS)
-        yield self.db.script_flush()
 
     @defer.inlineCallbacks
     def tearDown(self):
